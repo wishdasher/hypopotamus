@@ -276,4 +276,5 @@ UP = 1
 DOWN = 2
 
 if __name__ == '__main__':
+    # This is the main function
     main()
