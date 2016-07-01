@@ -276,4 +276,7 @@ UP = 1
 DOWN = 2
 
 if __name__ == '__main__':
-    main()
+    # Now I'm going add some conflicting line.
+    #main()
+    domain()
+
