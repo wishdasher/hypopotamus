@@ -44,7 +44,9 @@ from spacy.tokens.token import Token as SpacyToken
 
 
 def extract_paths_between_nouns(sentence):
-    """Get all the dependency paths between nouns in the sentence
+    """
+    Get all the dependency paths between nouns in the sentence
+
     :param sentence: the sentence to parse
     :return: a list of entities and paths, each element a list of X, Y, path
     """
