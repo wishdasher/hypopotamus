@@ -50,8 +50,9 @@ def extract_paths_between_nouns(sentence):
     """
 
     all_nouns = [(token, i, i) for i, token in enumerate(sentence)
-                    if token.tag_[:2] == 'NN' and len(token.string.strip()) > 1]
-    # Extending list of entities for noun chunks TODO consider, edit, test, should articles and pronouns be counted in noun chunks
+                 if token.tag_.startswith('NN') and len(token.string.strip()) > 1]
+    # Extending list of entities for noun chunks
+    # TODO consider, edit, test, should articles and pronouns be counted in noun chunks
     # also, this returns all noun chunks from the entire document
     noun_chunks = [(np, np.start, np.end) for np in sentence.doc.noun_chunks]
     all_nouns.extend(noun_chunks)
@@ -67,7 +68,9 @@ def extract_paths_between_nouns(sentence):
 
 
 def shortest_path(tokens):
-    """Returns the shortest dependency path from x to y
+    """
+    Returns the shortest dependency path from x to y
+
     :param tokens: a tuple (x_token, y_token)
     :return: the shortest dependency path from x to y
              in format (x, path from x to lch, lowest common head, path from lch to y, y)
@@ -125,7 +128,9 @@ def shortest_path(tokens):
 
 
 def heads(token):
-    """Return the heads of a token, from the root down to immediate head
+    """
+    Return the heads of a token, from the root down to immediate head
+
     :param token: spacy token
     :return: the heads of the token
     """
@@ -138,7 +143,9 @@ def heads(token):
 
 def check_direction(lch, hs, f_dir):
     """
-    Make sure that the path between the term and the lowest common head is in a certain direction
+    Make sure that the path between the term and the lowest common head is in a
+    certain direction
+
     :param lch: the lowest common head
     :param hs: the path from the lowest common head to the term
     :param f_dir: function of direction
@@ -150,7 +157,9 @@ def check_direction(lch, hs, f_dir):
 
 def get_satellite_links(path):
     """
-    Add the "setallites" - single links not already contained in the dependency path added on either side of each noun
+    Add the "setallites" - single links not already contained in the dependency
+    path added on either side of each noun
+
     :param x: the X token
     :param y: the Y token
     :param hx: X's head tokens
@@ -184,7 +193,8 @@ def edge_to_string(token, is_head=False):
     if not isinstance(token, SpacyToken):
         t = token.root
 
-    return '/'.join([token_to_lemma(token), t.pos_, t.dep_ if t.dep_ != '' and not is_head else 'ROOT'])
+    return '/'.join([token_to_lemma(token), t.pos_, t.dep_
+                     if t.dep_ != '' and not is_head else 'ROOT'])
 
 
 def argument_to_string(token, edge_name):
@@ -197,7 +207,8 @@ def argument_to_string(token, edge_name):
     if not isinstance(token, SpacyToken):
         token = token.root
 
-    return '/'.join([edge_name, token.pos_, token.dep_ if token.dep_ != '' else 'ROOT'])
+    return '/'.join([edge_name, token.pos_, token.dep_
+                     if token.dep_ != '' else 'ROOT'])
 
 
 def direction(dir):
@@ -345,4 +356,3 @@ if __name__ == '__main__':
             if paths:
                 for path in paths:
                     print('\t'.join(path), end='\n', file=f_out)
-        break
