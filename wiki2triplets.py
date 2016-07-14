@@ -66,7 +66,6 @@ def extract_paths_between_nouns(sentence):
     return paths
 
 
-
 def shortest_path(tokens):
     """Returns the shortest dependency path from x to y
     :param tokens: a tuple (x_token, y_token)
@@ -280,7 +279,6 @@ def clean_path(path):
         return token_to_string(x), token_to_string(y), cleaned_path
     else:
         return None
-
 
 
 def iter_paragraph(arguments):
