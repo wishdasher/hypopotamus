@@ -38,6 +38,7 @@ Try:
   python3 wiki2triplets.py --fromdump enwiki-latest-pages-articles.xml.bz2 -m 5 -o triplets.txt
 """
 
+from __future__ import print_function
 import io
 import os
 import sys
@@ -58,7 +59,7 @@ def extract_paths_between_nouns(sentence):
     Get all the dependency paths between nouns in the sentence
 
     :param sentence: the sentence to parse
-    :return: a list of entities and paths, each element a list of X, Y, path
+    :return: a generator that yields the entities and paths, each element a tuple of (X, Y, path)
     """
 
     all_nouns = [(token, i, i) for i, token in enumerate(sentence)
@@ -74,9 +75,10 @@ def extract_paths_between_nouns(sentence):
     pairs = [(x[0], y[0]) for x in all_nouns for y in all_nouns if x[2] < y[1]]
     paths = [path for path in map(shortest_path, pairs) if path is not None]
     paths = [p for path in paths for p in get_satellite_links(path)]
-    paths = [path for path in map(clean_path, paths) if path is not None]
 
-    return paths
+    for path in map(clean_path, paths):
+        if path:
+            yield path
 
 
 def shortest_path(tokens):
@@ -376,7 +378,5 @@ if __name__ == '__main__':
         annotated_paragraph = annotator(paragraph)
         # Extract the path for each sentence separately
         for sentence in annotated_paragraph.sents:
-            paths = extract_paths_between_nouns(sentence)
-            if paths:
-                for path in paths:
-                    print('\t'.join(path), end='\n', file=f_out)
+            for path in extract_paths_between_nouns(sentence):
+                print('\t'.join(path), end='\n', file=f_out)
