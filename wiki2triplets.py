@@ -42,6 +42,7 @@ from __future__ import print_function
 import io
 import os
 import sys
+import itertools
 from zipfile import ZipFile
 try: # Try to use a faster json library.
     import ujson as json
@@ -62,20 +63,21 @@ def extract_paths_between_nouns(sentence):
     :return: a generator that yields the entities and paths, each element a tuple of (X, Y, path)
     """
 
-    all_nouns = [(token, i, i) for i, token in enumerate(sentence)
-                 if token.tag_.startswith('NN') and len(token.string.strip()) > 1]
+    all_nouns = [token for token in sentence
+                 if token.tag_.startswith('NN') and len(token.string) > 1]
     # Extending list of entities for noun chunks
     # TODO consider, edit, test, should articles and pronouns be counted in noun chunks
     # also, this returns all noun chunks from the entire document
-    noun_chunks = [(np, np.start, np.end) for np in sentence.doc.noun_chunks]
-    all_nouns.extend(noun_chunks)
+    all_nouns.extend(sentence.doc.noun_chunks)
 
     # Extract all dependency paths between nouns, up to length 4
     # TODO consider that this does not include adjacent noun pairs
-    # TODO: (Liling) This chain of list-comprehensions can surely be reduced; map, reduce, filter. 
-    pairs = [(x[0], y[0]) for x in all_nouns for y in all_nouns if x[2] < y[1]]
-    paths = [path for path in map(shortest_path, pairs) if path is not None]
-    paths = [p for path in paths for p in get_satellite_links(path)]
+    # TODO: (Liling) This chain of list-comprehensions can surely be reduced; map, reduce, filter.
+
+    # Rather than instantiating a list of pairs of nouns, we can use a generator.
+    pairs = itertools.combinations(all_nouns, 2)
+    paths = (p for path in map(shortest_path, pairs) if path is not None
+             for p in get_satellite_links(path))
 
     for path in map(clean_path, paths):
         if path:
