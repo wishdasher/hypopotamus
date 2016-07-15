@@ -72,6 +72,7 @@ def extract_paths_between_nouns(sentence):
 
     # Extract all dependency paths between nouns, up to length 4
     # TODO consider that this does not include adjacent noun pairs
+    # TODO: (Liling) This chain of list-comprehensions can surely be reduced; map, reduce, filter. 
     pairs = [(x[0], y[0]) for x in all_nouns for y in all_nouns if x[2] < y[1]]
     paths = [path for path in map(shortest_path, pairs) if path is not None]
     paths = [p for path in paths for p in get_satellite_links(path)]
