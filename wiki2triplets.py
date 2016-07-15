@@ -11,22 +11,25 @@ https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
 
 Usage:
   wiki2triplets.py --help
-  wiki2triplets.py --fromjson <inputfile> [--maxpathlen <pathlen>] [--output <outputfile>]
+  wiki2triplets.py --fromjsondir <inputfile> [--maxpathlen <pathlen>] [--output <outputfile>]
+  wiki2triplets.py --fromjsonzip <inputfile> [--maxpathlen <pathlen>] [--output <outputfile>]
   wiki2triplets.py --fromdump <inputfile> [--maxpathlen <pathlen>] [--output <outputfile>]
 
 
 Options:
   -h --help                     Show this screen.
-  -j, --fromjson <inputfile>    Uses the annotated Wikipedia JSON file as input.
+  -j, --fromjsondir <inputfile> Uses the annotated Wikipedia JSON directory as input.
+  -z, --fromjsonzip <inputfile> Uses the annotated Wikipedia JSON zipfile as input.
   -d, --fromdump <inputfile>    Uses the raw Wikipedia dump as input.
   -o, --output <outputfile>     Option to output to file
   -m, --maxpathlen <pathlen>    Maximum path len between the entities considered for extraction [default: 4].
 
 
 Try:
-  python3 wiki2triplets.py --fromjson wikipedia-json.zip
-  python3 wiki2triplets.py --fromjson wikipedia-json.zip --maxpathlen 5 --output triplets.txt
-  python3 wiki2triplets.py --fromjson wikipedia-json.zip -m 5 -o triplets.txt
+  python3 wiki2triplets.py --fromjsondir extracted/
+  python3 wiki2triplets.py --fromjsonzip wikipedia-json.zip
+  python3 wiki2triplets.py --fromjsonzip wikipedia-json.zip --maxpathlen 5 --output triplets.txt
+  python3 wiki2triplets.py --fromjsonzip wikipedia-json.zip -m 5 -o triplets.txt
   python3 wiki2triplets.py --fromdump enwiki-latest-pages-articles.xml.bz2
   python3 wiki2triplets.py --fromdump enwiki-latest-pages-articles.xml.bz2 -m 5 -o triplets.txt
 """
@@ -303,14 +306,26 @@ def iter_paragraph(arguments):
     :return: A generator yielding a pargraph of text for each iteration.
     """
     # Iterating through paragraphes from the Anntoated Wikipedia zipfile.
-    if arguments['--fromjson']:
-        with ZipFile(arguments['--fromjson'], 'r') as zip_in:
+    if arguments['--fromjsonzip']:
+        with ZipFile(arguments['--fromjsonzip'], 'r') as zip_in:
             # Iterate through the individual files.
             for infile in zip_in.namelist():
                 if infile.endswith('/'): # Skip the directories.
                     continue
                 with zip_in.open(infile) as f_in:
                     for line in io.TextIOWrapper(f_in, 'utf8'):
+                        # Each line is a separate json.
+                        data = json.loads(line)
+                        # The useful text under 'text' key.
+                        paragraph = data['text'].strip()
+                        yield paragraph
+    # Iterating through paragraphes from the Anntoated Wikipedia directory.
+    elif arguments['--fromjsondir']:
+        for root, dirs, files in os.walk(arguments['--fromjsondir']):
+            for wiki_file in files:
+                infile = os.path.join(root, wiki_file)
+                with io.open(infile, 'r', encoding='utf8') as f_in:
+                    for line in f_in:
                         # Each line is a separate json.
                         data = json.loads(line)
                         # The useful text under 'text' key.
@@ -329,7 +344,7 @@ def iter_paragraph(arguments):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='Hypopotamus (wiki2triplets.py) version 0.0.1')
-    print (arguments)
+
     if arguments['--output']: # If output is specified, print output to a file.
         outfile = arguments['--output']
         f_out = io.open(outfile, 'w', encoding='utf8')
