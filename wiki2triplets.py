@@ -41,8 +41,11 @@ Try:
 import io
 import os
 import sys
-import json
 from zipfile import ZipFile
+try: # Try to use a faster json library.
+    import ujson as json
+except ImportError: # Otherwise, fall back on native json.
+    import json
 
 from docopt import docopt
 
@@ -321,8 +324,8 @@ def iter_paragraph(arguments):
                         # Each line is a separate json.
                         data = json.loads(line)
                         # The useful text under 'text' key.
-                        paragraph = data['text'].strip()
-                        yield paragraph
+                        yield data['text'].strip()
+
     # Iterating through paragraphes from the Anntoated Wikipedia directory.
     elif arguments['--fromjsondir']:
         for root, dirs, files in os.walk(arguments['--fromjsondir']):
@@ -333,10 +336,10 @@ def iter_paragraph(arguments):
                         # Each line is a separate json.
                         data = json.loads(line)
                         # The useful text under 'text' key.
-                        paragraph = data['text'].strip()
-                        yield paragraph
+                        yield data['text'].strip()
+
     # Iterating through paragraphes from the Wikipedia dump.
-    elif '--fromdump' in arguments.keys() and arguments['--fromdump']:
+    elif arguments['--fromdump']:
         infile = arguments['--fromdump']
         # Simply iterate through every line in the dump
         # and treat each line as a paragraph.
