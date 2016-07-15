@@ -9,6 +9,10 @@ The wikipedia-json.zip can be downloaded at:
 The enwiki-latest-pages-articles.xml.bz2 can be downloaded at:
 https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
 
+(Note: It's faster to unzip the zipfiles and use --fromjsondir instead of
+       --fromjsonzip option. Use --fromjsonzip if there's not enough diskspace.)
+
+
 Usage:
   wiki2triplets.py --help
   wiki2triplets.py --fromjsondir <inputfile> [--maxpathlen <pathlen>] [--output <outputfile>]
