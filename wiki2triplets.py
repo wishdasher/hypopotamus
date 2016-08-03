@@ -25,8 +25,9 @@ Options:
   -j, --fromjsondir <inputfile> Uses the annotated Wikipedia JSON directory as input.
   -z, --fromjsonzip <inputfile> Uses the annotated Wikipedia JSON zipfile as input.
   -d, --fromdump <inputfile>    Uses the raw Wikipedia dump as input.
-  -o, --output <outputfile>     Option to output to file
+  -o, --output <outputfile>     Option to output to file.
   -m, --maxpathlen <pathlen>    Maximum path len between the entities considered for extraction [default: 4].
+  -v, --verbose                 Prints out the current file from which this script is extracting the triplets.
 
 
 Try:
@@ -44,6 +45,7 @@ import os
 import sys
 import itertools
 from zipfile import ZipFile
+
 try: # Try to use a faster json library.
     import ujson as json
 except ImportError: # Otherwise, fall back on native json.
@@ -72,11 +74,10 @@ def extract_paths_between_nouns(sentence):
 
     # Extract all dependency paths between nouns, up to length 4
     # TODO consider that this does not include adjacent noun pairs
-    # TODO: (Liling) This chain of list-comprehensions can surely be reduced; map, reduce, filter.
-
-    # Rather than instantiating a list of pairs of nouns, we can use a generator.
+    # Rather than instantiating a list of pairs of nouns, we can use generators.
     pairs = itertools.combinations(all_nouns, 2)
-    paths = (p for path in map(shortest_path, pairs) if path is not None
+
+    paths = (p for path in map(shortest_path, pairs) if path
              for p in get_satellite_links(path))
 
     for path in map(clean_path, paths):
@@ -89,8 +90,8 @@ def shortest_path(tokens):
     Returns the shortest dependency path from x to y
 
     :param tokens: a tuple (x_token, y_token)
-    :return: the shortest dependency path from x to y
-             in format (x, path from x to lch, lowest common head, path from lch to y, y)
+    :return: the shortest dependency path from x to y in the format
+             (x, path from x to lch, lowest common head, path from lch to y, y)
     """
 
     x, y = tokens
@@ -185,7 +186,8 @@ def get_satellite_links(path):
     :return: more paths, with satellite links
     """
 
-    # TODO: only adds on one dependency edge (first one, why?), doesn't consider x.rights, y.lefts\
+    # TODO: only adds on one dependency edge (first one, why?),
+    #       doesn't consider x.rights, y.lefts\
     x, hx, lch, hy, y = path
     paths = [(None, x, hx, lch, hy, y, None)]
 
@@ -281,6 +283,8 @@ def clean_path(path):
         set_path_x = [edge_to_string(set_x) + direction(DOWN)]
     if set_y:
         set_path_y = [direction(UP) + edge_to_string(set_y)]
+    if set_y:
+        set_path_y = [direction(UP) + edge_to_string(set_y)]
 
     # X is the head
     if isinstance(x, SpacyToken) and lch == x:
@@ -311,7 +315,7 @@ def clean_path(path):
 
 def iter_paragraph(arguments):
     """
-    A helper function to iterate through the two types of Wikipedia data inputs.
+    A helper function to iterate through the diff types of Wikipedia data inputs.
 
     :param arguments: The docopt arguments
     :type arguments: dict
@@ -324,6 +328,7 @@ def iter_paragraph(arguments):
             for infile in zip_in.namelist():
                 if infile.endswith('/'): # Skip the directories.
                     continue
+                print(infile, end='\n', file=sys.stderr) # Logging progress.
                 with zip_in.open(infile) as f_in:
                     for line in io.TextIOWrapper(f_in, 'utf8'):
                         # Each line is a separate json.
@@ -336,6 +341,7 @@ def iter_paragraph(arguments):
         for root, dirs, files in os.walk(arguments['--fromjsondir']):
             for wiki_file in files:
                 infile = os.path.join(root, wiki_file)
+                print(infile, end='\n', file=sys.stderr) # Logging progress.
                 with io.open(infile, 'r', encoding='utf8') as f_in:
                     for line in f_in:
                         # Each line is a separate json.
@@ -349,7 +355,10 @@ def iter_paragraph(arguments):
         # Simply iterate through every line in the dump
         # and treat each line as a paragraph.
         with io.open(infile, 'r', encoding='utf8') as f_in:
-            for paragraph in f_in:
+            for line_count, paragraph in enumerate(f_in):
+                if line_count % 100000:
+                    _msg = 'Processing line {}\n'.format(line_count)
+                    print(_msg, file=sys.stderr) # Logging progress.
                 if pargraph:
                     yield paragraph
 
