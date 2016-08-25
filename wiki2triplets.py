@@ -44,6 +44,7 @@ import io
 import os
 import sys
 import itertools
+from time import gmtime, strftime
 from zipfile import ZipFile
 
 try: # Try to use a faster json library.
@@ -384,6 +385,8 @@ if __name__ == '__main__':
 
     # Initialize the Spacy Parser.
     annotator = English()
+    print("STARTS on " + strftime("%Y-%m-%d %H:%M:%S", gmtime()),
+          end='\n', file=sys.stderr) # Logging start time
 
     # Iterate through the pargraphs in Wikipedia articles.
     for paragraph in iter_paragraph(arguments):
@@ -392,3 +395,6 @@ if __name__ == '__main__':
         for sentence in annotated_paragraph.sents:
             for path in extract_paths_between_nouns(sentence):
                 print('\t'.join(path), end='\n', file=f_out)
+
+    print("ENDS on " + strftime("%Y-%m-%d %H:%M:%S", gmtime()),
+          end='\n', file=sys.stderr) # Logging end time
