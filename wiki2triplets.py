@@ -4,7 +4,7 @@
 Hypopotamus Wikipedia Parser: Create a triplets file from the Wikipedia dump.
 
 The wikipedia-json.zip can be downloaded at:
-#TODO: Add zipball to dropbox (liling)
+https://www.dropbox.com/s/5w4ibn5idre9yre/wikipedia-json.zip?dl=0
 
 The enwiki-latest-pages-articles.xml.bz2 can be downloaded at:
 https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
